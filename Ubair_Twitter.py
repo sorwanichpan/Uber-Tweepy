@@ -12,7 +12,32 @@ import tweepy
 # Override Tweepy Stream listener
 class StdOutlistener(StreamListener):
 	def on_status(self,status):
-		print(status.text)
+		if status.user.lang == "en":
+			print "Tweet: ", status.text
+			print "Timestamp: ",status.created_at
+			print "Source: ",status.source
+			print "Author: ",status.user.screen_name
+	
+			#  Geo Location checking
+			if status.user.location is not None or status.user.location != " ":
+				print "Location: ",status.user.location
+			if status.place is not None:
+				print "Place: ",status.place
+				print "Coordinates: ",status.place.coordinates
+			if status.user.geo_enabled is not True:
+				if status.geo is not None and status.coordinates is not None:
+					print "Coordinates: ",status.coordinates
+
+			print "==================================="
+
+	def on_error(self,status_code):
+		if status_code == 200:
+			print "Stream connection success! Status Code: {0}".format(status_code)
+		elif status_code == 420:
+			print "Stream rate limited! Disconnecting! Status Code: {0}".format(status_code)
+			return False
+		else: 
+			print "Error Code: {0}".format(status_code)
 
 def define_GlobalVars():
 	global SCRIPTNAME
@@ -47,16 +72,9 @@ def main():
 	define_GlobalVars()
 	args = CLI_Arguments()
 
-	# Get API Handler and StdOut listener
+	# Get API Handler and feed stream
 	api = get_OAuth()
-	myStreamListener = StdOutlistener()
-
-	myStream = Stream(api.auth,myStreamListener)
-	myStream.filter(track=['Uber'],async=True)
-
-
-
-
-
+	myStream = Stream(api.auth,StdOutlistener())
+	myStream.filter(track=['Uber'])
 if __name__ == '__main__':
 	main()
