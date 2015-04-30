@@ -4,8 +4,15 @@
 __version__ = 0.1
 
 import argparse, os
-import oauth2 as oauth
+from tweepy.streaming import StreamListener
+from tweepy import OAuthHandler
+from tweepy import Stream
 import tweepy
+
+# Override Tweepy Stream listener
+class StdOutlistener(StreamListener):
+	def on_status(self,status):
+		print(status.text)
 
 def define_GlobalVars():
 	global SCRIPTNAME
@@ -29,21 +36,23 @@ def get_OAuth():
 	access_token_secret = ''
 
 	# Auth Token
-	auth = tweepy.OAuthHandler(consumer_key, consumer_secret)
+	auth = OAuthHandler(consumer_key, consumer_secret)
 	auth.set_access_token(access_token, access_token_secret)
 
 	# Return the API 
 	return tweepy.API(auth)
-
-def 
 
 def main():
 	# Set Global Variables and Get CLI Args
 	define_GlobalVars()
 	args = CLI_Arguments()
 
-	# Get API Handler
+	# Get API Handler and StdOut listener
 	api = get_OAuth()
+	myStreamListener = StdOutlistener()
+
+	myStream = Stream(api.auth,myStreamListener)
+	myStream.filter(track=['Uber'],async=True)
 
 
 
